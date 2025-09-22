@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal Metrology Compliance Checker</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 25%, #667eea 75%, #764ba2 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.15)"/><circle cx="40" cy="80" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="90" r="1" fill="rgba(255,255,255,0.12)"/></svg>') repeat;
+            animation: float 20s infinite linear;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) translateX(0) rotate(0deg); }
+            33% { transform: translateY(-20px) translateX(10px) rotate(120deg); }
+            66% { transform: translateY(10px) translateX(-10px) rotate(240deg); }
+            100% { transform: translateY(0) translateX(0) rotate(360deg); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+            animation: slideDown 1s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #fff, #e0e7ff, #fff);
+            background-size: 200% 200%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            max-width: 700px;
+            margin: 0 auto;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .main-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(25px);
+            border-radius: 25px;
+            padding: 50px;
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.15),
+                0 0 0 1px rgba(255,255,255,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            margin-bottom: 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: slideUp 1s ease-out 0.3s both;
+            transition: all 0.3s ease;
+        }
+
+        .main-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 35px 70px rgba(0,0,0,0.2),
+                0 0 0 1px rgba(255,255,255,0.15),
+                inset 0 1px 0 rgba(255,255,255,0.25);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .backend-status {
+            padding: 20px 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .backend-status::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .backend-status:hover::before {
+            left: 100%;
+        }
+
+        .backend-status.connected {
+            background: linear-gradient(135deg, #00c9a7, #00b894);
+            color: white;
+            box-shadow: 0 8px 25px rgba(0, 201, 167, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .backend-status.disconnected {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .input-section {
+            margin-bottom: 40px;
+        }
+
+        .input-section h3 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .url-input-container {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 18px 25px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 15px;
+            font-size: 16px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(10px);
+            color: #333;
+            font-weight: 500;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.8);
+            box-shadow: 
+                0 0 0 4px rgba(255,255,255,0.1),
+                0 10px 30px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+            background: rgba(255,255,255,0.95);
+        }
+
+        .url-input::placeholder {
+            color: rgba(0,0,0,0.5);
+        }
+
+        .url-list {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.3) transparent;
+        }
+
+        .url-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .url-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .url-list::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+
+        .url-list h4 {
+            color: white;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .url-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.9);
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .url-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            background: rgba(255,255,255,0.95);
+        }
+
+        .url-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .url-text {
+            flex: 1;
+            font-size: 14px;
+            color: #555;
+            word-break: break-all;
+            margin-right: 15px;
+            font-weight: 500;
+        }
+
+        .remove-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .remove-btn:hover {
+            background: linear-gradient(135deg, #ee5a52, #d63447);
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(238, 90, 82, 0.4);
+        }
+
+        .remove-btn:active {
+            transform: scale(0.95);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 18px 35px;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            flex: 1;
+            min-width: 250px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #5a6fd8, #6a4190);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(-1px) scale(1.01);
+        }
+
+        .btn-primary:disabled {
+            background: linear-gradient(135deg, #bbb, #999);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            box-shadow: 0 8px 25px rgba(116, 185, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #0984e3, #00b894);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(116, 185, 255, 0.4);
+        }
+
+        .progress-section {
+            display: none;
+            margin: 40px 0;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00c9a7, #00b894, #667eea);
+            background-size: 200% 100%;
+            width: 0%;
+            border-radius: 6px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: progressShimmer 2s infinite;
+        }
+
+        @keyframes progressShimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .status-text {
+            color: rgba(255,255,255,0.9);
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 40px;
+            padding: 35px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: slideUp 0.6s ease;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .results-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #00c9a7, #00b894);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 201, 167, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .download-btn:hover::before {
+            left: 100%;
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(135deg, #00b894, #00a085);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 201, 167, 0.4);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            background: rgba(255,255,255,0.95);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .compliant {
+            background: linear-gradient(135deg, #00c9a7, #00b894) !important;
+            background-clip: text !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+
+        .non-compliant {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52) !important;
+            background-clip: text !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+
+        .preview-table {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            overflow: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-height: 600px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .preview-table table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1400px;
+        }
+
+        .preview-table th,
+        .preview-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-size: 13px;
+            vertical-align: top;
+        }
+
+        .preview-table th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 12px;
+        }
+
+        .preview-table td {
+            max-width: 150px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            transition: background 0.2s ease;
+        }
+
+        .preview-table tr:hover td {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .compliance-status {
+            padding: 6px 15px;
+            border-radius: 25px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .compliance-status.compliant {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+        }
+
+        .compliance-status.non-compliant {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+        }
+
+        .compliance-status.error {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid rgba(255,255,255,0.3);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+            font-weight: 500;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 50px;
+            padding: 30px;
+            font-size: 14px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: slideUp 1s ease-out 0.6s both;
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.95);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+            color: #74b9ff;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            .main-card {
+                padding: 30px 25px;
+            }
+
+            .header h1 {
+                font-size: 2.2rem;
+            }
+
+            .header p {
+                font-size: 1.1rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .results-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+
+            .stat-card {
+                padding: 20px 15px;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Legal Metrology Compliance Checker</h1>
+            <p>Automated verification of e-commerce product listings against Legal Metrology (Packaged Commodities) Rules, 2011</p>
+        </div>
+
+        <div class="main-card">
+            <div id="backendStatus" class="backend-status disconnected">
+                🔌 Checking backend connection...
+            </div>
+
+            <div class="input-section">
+                <h3>📝 Add Product URLs</h3>
+                <div class="url-input-container">
+                    <input 
+                        type="url" 
+                        class="url-input" 
+                        id="urlInput" 
+                        placeholder="Enter Amazon India URL"
+                    >
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="addUrl()">➕ Add URL</button>
+                    <button class="btn btn-secondary" onclick="clearAll()">🗑️ Clear All</button>
+                </div>
+
+                <div id="urlList" class="url-list" style="display: none;">
+                    <h4 style="margin-bottom: 15px; color: #333;">📋 URLs to Check</h4>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" id="checkBtn" onclick="startCompliance()" disabled>
+                    Start Compliance Check
+                </button>
+            </div>
+
+            <div class="progress-section" id="progressSection">
+                <div class="status-text" id="statusText">Initializing compliance check...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="results-section" id="resultsSection">
+                <div class="results-header">
+                    <h3 class="results-title">📊 Compliance Report</h3>
+                    <button class="download-btn" onclick="downloadCSV()">
+                        💾 Download CSV Report
+                    </button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalProducts">0</div>
+                        <div class="stat-label">Total Products</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number compliant" id="compliantCount">0</div>
+                        <div class="stat-label">Compliant</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number non-compliant" id="nonCompliantCount">0</div>
+                        <div class="stat-label">Non-Compliant</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="complianceRate">0%</div>
+                        <div class="stat-label">Compliance Rate</div>
+                    </div>
+                </div>
+
+                <div class="preview-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product ID</th>
+                                <th>Product Name</th>
+                                <th>MRP Value</th>
+                                <th>Net Quantity</th>
+                                <th>Net Quantity Unit</th>
+                                <th>Country of Origin</th>
+                                <th>Manufacturer Name</th>
+                                <th>Consumer Care Contact</th>
+                                <th>Rating</th>
+                                <th>URL</th>
+                                <th>Main Image</th>
+                                <th>Back Image</th>
+                                <th>Compliance Score</th>
+                                <th>Violations</th>
+                            </tr>
+                        </thead>
+                        <tbody id="previewTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Powered by CompliCrawl | <a href="#">Legal Metrology Division</a> | Government of India</p>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'http://localhost:5000';
+        let urlsList = [];
+        let complianceResults = [];
+
+        // Check backend connection on page load
+        async function checkBackendConnection() {
+            const statusDiv = document.getElementById('backendStatus');
+            try {
+                const response = await fetch(`${BACKEND_URL}/health`);
+                if (response.ok) {
+                    statusDiv.className = 'backend-status connected';
+                    statusDiv.innerHTML = 'Ready to process URLs';
+                } else {
+                    throw new Error('Backend not responding');
+                }
+            } catch (error) {
+                statusDiv.className = 'backend-status disconnected';
+                statusDiv.innerHTML = '❌ Backend not connected. Please ensure Python server is running on localhost:5000';
+            }
+        }
+
+        function addUrl() {
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
+
+            if (!url) {
+                showError('Please enter a valid URL');
+                return;
+            }
+
+            if (!isValidUrl(url)) {
+                showError('Please enter a valid e-commerce URL');
+                return;
+            }
+
+            if (urlsList.includes(url)) {
+                showError('URL already added');
+                return;
+            }
+
+            urlsList.push(url);
+            urlInput.value = '';
+            updateUrlDisplay();
+            updateCheckButton();
+
+            // Clear any existing error messages
+            const existingErrors = document.querySelectorAll('.error-message');
+            existingErrors.forEach(error => error.remove());
+
+            // Add success animation
+            urlInput.style.transform = 'scale(1.05)';
+            urlInput.style.borderColor = '#00c9a7';
+            setTimeout(() => {
+                urlInput.style.transform = 'scale(1)';
+                urlInput.style.borderColor = 'rgba(255,255,255,0.2)';
+            }, 200);
+        }
+
+        function isValidUrl(string) {
+            try {
+                const url = new URL(string);
+                const validDomains = [
+                    'amazon.in', 'amazon.com', 'amzn.in', 'amzn.to',
+                    'flipkart.com', 'myntra.com', 'snapdeal.com', 'ajio.com'
+                ];
+
+                const isValidProtocol = url.protocol === 'http:' || url.protocol === 'https:';
+                const isValidDomain = validDomains.some(domain => 
+                    url.hostname.includes(domain) || url.hostname === domain
+                );
+
+                return isValidProtocol && isValidDomain;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function showError(message) {
+            const existingErrors = document.querySelectorAll('.error-message');
+            existingErrors.forEach(error => error.remove());
+
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+
+            const inputSection = document.querySelector('.input-section');
+            inputSection.appendChild(errorDiv);
+
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+
+        function removeUrl(index) {
+            urlsList.splice(index, 1);
+            updateUrlDisplay();
+            updateCheckButton();
+        }
+
+        function clearAll() {
+            urlsList = [];
+            updateUrlDisplay();
+            updateCheckButton();
+        }
+
+        function updateUrlDisplay() {
+            const urlListDiv = document.getElementById('urlList');
+
+            if (urlsList.length === 0) {
+                urlListDiv.style.display = 'none';
+                return;
+            }
+
+            urlListDiv.style.display = 'block';
+            urlListDiv.innerHTML = `<h4 style="margin-bottom: 15px; color: white;">📋 URLs to Check (${urlsList.length})</h4>`;
+
+            urlsList.forEach((url, index) => {
+                const urlItem = document.createElement('div');
+                urlItem.className = 'url-item';
+                urlItem.innerHTML = `
+                    <span class="url-text">${url}</span>
+                    <button class="remove-btn" onclick="removeUrl(${index})">✕</button>
+                `;
+                urlListDiv.appendChild(urlItem);
+            });
+        }
+
+        function updateCheckButton() {
+            const checkBtn = document.getElementById('checkBtn');
+            checkBtn.disabled = urlsList.length === 0;
+        }
+
+        async function startCompliance() {
+            const progressSection = document.getElementById('progressSection');
+            const resultsSection = document.getElementById('resultsSection');
+            const checkBtn = document.getElementById('checkBtn');
+            const statusText = document.getElementById('statusText');
+            const progressFill = document.getElementById('progressFill');
+
+            progressSection.style.display = 'block';
+            resultsSection.style.display = 'none';
+            checkBtn.disabled = true;
+
+            statusText.textContent = 'Sending URLs to backend for processing...';
+            progressFill.style.width = '10%';
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/check-compliance`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        urls: urlsList,
+                        api_key: null // Will use demo mode
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Backend error: ${response.status}`);
+                }
+
+                statusText.textContent = 'Processing compliance data...';
+                progressFill.style.width = '70%';
+
+                const data = await response.json();
+                complianceResults = data.results;
+
+                statusText.textContent = 'Generating final report...';
+                progressFill.style.width = '100%';
+
+                setTimeout(() => {
+                    showResults();
+                }, 1000);
+
+            } catch (error) {
+                showError(`Error: ${error.message}. Please ensure the Python backend is running.`);
+                progressSection.style.display = 'none';
+                checkBtn.disabled = false;
+            }
+        }
+
+        function showResults() {
+            const progressSection = document.getElementById('progressSection');
+            const resultsSection = document.getElementById('resultsSection');
+            const checkBtn = document.getElementById('checkBtn');
+
+            progressSection.style.display = 'none';
+            resultsSection.style.display = 'block';
+            checkBtn.disabled = false;
+
+            updateStats();
+            updatePreviewTable();
+        }
+
+        // Fixed function to determine compliance based on score
+        function getComplianceStatus(complianceScore) {
+            // Parse the compliance score (remove % if present and convert to number)
+            const score = typeof complianceScore === 'string' 
+                ? parseInt(complianceScore.replace('%', '')) 
+                : parseInt(complianceScore) || 0;
+
+            return score === 100 ? 'Compliant' : 'Non-Compliant';
+        }
+
+        function updateStats() {
+            const totalProducts = complianceResults.length;
+
+            // Count compliant products based on compliance score
+            let compliantCount = 0;
+            complianceResults.forEach(product => {
+                const score = typeof product.compliance_score === 'string' 
+                    ? parseInt(product.compliance_score.replace('%', '')) 
+                    : parseInt(product.compliance_score) || 0;
+
+                if (score === 100) {
+                    compliantCount++;
+                }
+            });
+
+            const nonCompliantCount = totalProducts - compliantCount;
+            const complianceRate = totalProducts > 0 ? Math.round((compliantCount / totalProducts) * 100) : 0;
+
+            document.getElementById('totalProducts').textContent = totalProducts;
+            document.getElementById('compliantCount').textContent = compliantCount;
+            document.getElementById('nonCompliantCount').textContent = nonCompliantCount;
+            document.getElementById('complianceRate').textContent = complianceRate + '%';
+        }
+
+        function updatePreviewTable() {
+            const tableBody = document.getElementById('previewTable');
+            tableBody.innerHTML = '';
+
+            complianceResults.forEach(product => {
+                const row = document.createElement('tr');
+                const violationsText = Array.isArray(product.violations) && product.violations.length > 0 ? 
+                    product.violations.join(', ') : 'None';
+
+                // Parse compliance score to determine styling
+                const score = typeof product.compliance_score === 'string' 
+                    ? parseInt(product.compliance_score.replace('%', '')) 
+                    : parseInt(product.compliance_score) || 0;
+
+                row.innerHTML = `
+                    <td>${product.product_id || 'N/A'}</td>
+                    <td>${product.product_name || 'Unknown Product'}</td>
+                    <td>${product.mrp_value || 'Not Found'}</td>
+                    <td>${product.net_quantity_value || 'Not Found'}</td>
+                    <td>${product.net_quantity_unit || 'Not Found'}</td>
+                    <td>${product.country_of_origin || 'Not Specified'}</td>
+                    <td style="max-width: 200px; word-wrap: break-word;">${product.manufacturer_name || 'Not Found'}</td>
+                    <td style="max-width: 200px; word-wrap: break-word;">${product.consumer_care_contact || 'Not Found'}</td>
+                    <td>${product.rating || 'N/A'}</td>
+                    <td style="max-width: 200px; word-wrap: break-word;">
+                        <a href="${product.url}" target="_blank" style="color: #667eea; text-decoration: none;">
+                            View Product
+                        </a>
+                    </td>
+                    <td>
+                        ${product.main_image_url ? 
+                            `<a href="${product.main_image_url}" target="_blank" style="color: #667eea;">View Image</a>` : 
+                            'N/A'}
+                    </td>
+                    <td>
+                        ${product.back_image_url ? 
+                            `<a href="${product.back_image_url}" target="_blank" style="color: #667eea;">View Image</a>` : 
+                            'N/A'}
+                    </td>
+                    <td>
+                        <span style="font-weight: 600; color: ${getScoreColor(score)};">
+                            ${product.compliance_score || '0%'}
+                        </span>
+                    </td>
+                    <td style="max-width: 300px; word-wrap: break-word;">
+                        <span style="color: ${getViolationColor(score)}; font-weight: 600;">
+                            ${violationsText}
+                        </span>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function getScoreColor(score) {
+            if (score === 100) return '#28a745'; // Green for 100%
+            if (score > 50) return '#ffc107';    // Yellow for >50%
+            return '#dc3545';                    // Red for ≤50%
+        }
+
+        function getViolationColor(score) {
+            if (score === 100) return '#28a745'; // Green for compliant
+            return '#dc3545';                     // Red for non-compliant
+        }
+
+        function getComplianceClass(status) {
+            if (status === 'Compliant') return 'compliant';
+            if (status === 'Non-Compliant') return 'non-compliant';
+            return 'error';
+        }
+
+        function getPlatformFromUrl(url) {
+            if (url.includes('amazon')) return 'Amazon';
+            if (url.includes('flipkart')) return 'Flipkart';
+            return 'Other';
+        }
+
+        async function downloadCSV() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/download-csv`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        results: complianceResults
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate CSV');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `compliance_report_${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
+                window.URL.revokeObjectURL(url);
+
+            } catch (error) {
+                showError('Failed to download CSV: ' + error.message);
+            }
+        }
+
+        // Allow Enter key to add URL
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addUrl();
+            }
+        });
+
+        // Check backend connection on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkBackendConnection();
+            console.log('Legal Metrology Compliance Checker loaded');
+        });
+    </script>
+</body>
+</html>
