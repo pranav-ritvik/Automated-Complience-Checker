@@ -16,7 +16,10 @@ The system outputs **compliance flags** and assigns a **compliance score** to ea
 ---
 
 ## Workflow  
+![Workflow](images/workflow.png)
 
+## Sequence Diagram
+![UML Sequence Diagram](images/uml_sequence.png)
 ### 1. Data Acquisition  
 - Scraped product listings using **ScraperAPI + BeautifulSoup**.  
 - Extracted structured fields such as product ID, product name, net quantity, MRP, ratings, and product URLs.  
